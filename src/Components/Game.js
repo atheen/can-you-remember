@@ -8,8 +8,9 @@ import { shuffle } from "../utils";
 
 // Components
 import Card from "./Card";
+import Score from "./Score";
 
-const Game = ({ difficulty }) => {
+const Game = ({ mode, difficulty }) => {
   const [cards, setCards] = useState([]);
   //   const [flippedCards, changeFlipped] = useState([]);
 
@@ -29,6 +30,13 @@ const Game = ({ difficulty }) => {
     setCards(() => shuffle([...cards, ...cards]));
   }, [difficulty]);
 
+  //To Store player score and pass them
+  const [score, setScore] = useState([0, 0]);
+
+  //To know which player's turn it is
+  const [playerTurn, setPlayerTurn] = useState(true);
+  const [failedFlips, increaseFailed] = useState(0);
+
   let flippedCards = [];
   const changeFlipped = anArray => {
     flippedCards = anArray;
@@ -47,6 +55,16 @@ const Game = ({ difficulty }) => {
     if (flippedCards.length === 2) {
       if (flippedCards[0].id !== flippedCards[1].id) {
         unflipCards(flippedCards[0].changeFlip, flippedCards[1].changeFlip);
+        increaseFailed(failedFlips + 1);
+        setPlayerTurn(!playerTurn);
+      } else {
+        if (mode === "multi") {
+          if (playerTurn) {
+            setScore([(score[0] += 1), score[1]]);
+          } else {
+            setScore([score[0], (score[1] += 1)]);
+          }
+        }
       }
       changeFlipped([]);
     }
@@ -54,7 +72,7 @@ const Game = ({ difficulty }) => {
 
   //Mapping through the array of cards and placing them in the card component
   const cardList = cards.map((card, idx) => (
-    <Card key={`${card.id}-${idx}`} card={card} checkFlipped={checkFlipped} /> //4
+    <Card key={`${card.id}-${idx}`} card={card} checkFlipped={checkFlipped} />
   ));
 
   return (
@@ -63,6 +81,12 @@ const Game = ({ difficulty }) => {
         <div className=" col-9">
           <div className="row border">{cardList}</div>
         </div>
+        <Score
+          mode={mode}
+          score={score}
+          failedFlips={failedFlips}
+          playerTurn={playerTurn}
+        />
       </div>
     </div>
   );
